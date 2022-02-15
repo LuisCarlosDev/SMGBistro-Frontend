@@ -1,12 +1,14 @@
 import Head from 'next/head';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useContext, useEffect, useRef, useState } from 'react';
 import Modal from 'react-modal';
 import { FiTrash, FiX, FiEdit3, FiPlus } from 'react-icons/fi'
-import api from '../services/api';
+
+import { ProductsContext } from '../hooks/product';
 
 import styles from '../styles/home.module.scss';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
+
 
 type ProductResponse = {
   id: string;
@@ -15,38 +17,26 @@ type ProductResponse = {
 
 export default function Home() {
   const formRef = useRef<FormHandles>(null);
-  const [products, setProducts] = useState<ProductResponse[]>([]);
-  const [editProduct, setEditProduct] = useState<ProductResponse>({} as ProductResponse);
   const [isEditProductModal, setIsEditProductModal] = useState(false);
   const [titleProduct, setTitleProduct] = useState('');
 
-  useEffect(() => {
-    async function productList() {
-      const response = await api.get('/products');
+  const { products, createProduct, deleteProduct, updateProduct } = useContext(ProductsContext);
 
-      setProducts(response.data);
-    }
+  async function handleCreateNewProduct(event: FormEvent) {
+    event.preventDefault();
 
-    productList();
-  }, []);
+    createProduct(titleProduct);
 
-  function handleCreateNewProduct() {
-    async function addProduct(data: ProductResponse) {
-      formRef.current.setErrors({});
+    setTitleProduct('');
+  }
 
-      const response = await api.post('/products', data)
-
-      // setProducts();
-    }
-
-    addProduct()
+  // FALTA FAZER
+  async function handleEditProduct(product: ProductResponse): Promise<void> {
+    updateProduct(product);
   }
 
   async function handleRemoveProduct(id: string) {
-    await api.delete(`/products/${id}`);
-
-    const newProductList = products.filter(currentProduct => currentProduct.id !== id);
-    setProducts(newProductList);
+    deleteProduct(id);
   }
 
   function handleOpenEditProductModal() {
@@ -57,13 +47,7 @@ export default function Home() {
     setIsEditProductModal(false);
   }
 
-  async function handleEditProduct(product: ProductResponse): Promise<void> {
-    await api.put(`/products/${product.id}`, {
-      id: product.id,
-      name: product.name
-    })
-    // setEditProduct(response.data);
-  }
+
 
   return (
     <section className={styles.container}>
@@ -73,15 +57,24 @@ export default function Home() {
       <header className={styles.header}>
         <h2>Meus Produtos</h2>
 
-        <div className={styles['input-group']}>
+        <form
+          onSubmit={handleCreateNewProduct}
+          className={styles['input-group']}
+        >
           <input
             type="text"
             placeholder="Adicionar novo produto"
+            value={titleProduct}
+            onChange={event => setTitleProduct(event.target.value)}
           />
-          <button type="submit" data-testid="add-task-button" onClick={handleCreateNewProduct}>
+          <button
+            type="submit"
+            data-testid="add-task-button"
+            onClick={() => handleCreateNewProduct}
+          >
             <FiPlus size={18} color="#fff" />
           </button>
-        </div>
+        </form>
       </header>
 
       <main>
@@ -112,7 +105,7 @@ export default function Home() {
                 </button>
                 <Form
                   ref={formRef}
-                  onSubmit={() => handleEditProduct(product)}
+                  onSubmit={handleEditProduct}
                   className={styles.formModal}
                 >
                   <h2>Editar produto</h2>
@@ -122,7 +115,7 @@ export default function Home() {
                     onChange={e => setTitleProduct(e.target.value)}
                   />
 
-                  <button type='submit'>Atualizar</button>
+                  <button type='submit' onClick={() => handleEditProduct(product)}>Atualizar</button>
                 </Form>
               </Modal>
             </li>
