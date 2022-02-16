@@ -47,8 +47,6 @@ export default function Home() {
     setIsEditProductModal(false);
   }
 
-
-
   return (
     <section className={styles.container}>
       <Head>
@@ -115,15 +113,13 @@ export default function Home() {
                     onChange={e => setTitleProduct(e.target.value)}
                   />
 
-                  <button type='submit' onClick={() => handleEditProduct(product)}>Atualizar</button>
+                  <button type='submit'>Atualizar</button>
                 </Form>
               </Modal>
             </li>
           ))}
 
         </ul>
-
-
       </main>
     </section>
 

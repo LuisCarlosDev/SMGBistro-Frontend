@@ -49,6 +49,8 @@ export function ProductsProvider({ children }: ProductsProviderProps) {
   function updateProduct(product: ProductResponse) {
     try {
       api.put(`/products/${product.id}`, product)
+
+      console.log(product)
     } catch (error) {
       console.log(error)
     }
