@@ -1,13 +1,15 @@
 import Head from 'next/head';
-import { FormEvent, useContext, useEffect, useRef, useState } from 'react';
-import Modal from 'react-modal';
-import { FiTrash, FiX, FiEdit3, FiPlus } from 'react-icons/fi'
+import { FormEvent, useContext, useRef, useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { FiTrash, FiEdit3, FiPlus } from 'react-icons/fi'
 
 import { ProductsContext } from '../hooks/product';
 
 import styles from '../styles/home.module.scss';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
+import { EditProductModal } from '../components/EditProductModal';
+import api from '../services/api';
 
 
 type ProductResponse = {
@@ -15,36 +17,30 @@ type ProductResponse = {
   name: string;
 }
 
+// type ProductInput = Omit<ProductResponse, 'id'>
+
 export default function Home() {
-  const formRef = useRef<FormHandles>(null);
-  const [isEditProductModal, setIsEditProductModal] = useState(false);
-  const [titleProduct, setTitleProduct] = useState('');
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
 
-  const { products, createProduct, deleteProduct, updateProduct } = useContext(ProductsContext);
+  const { register, handleSubmit } = useForm();
 
-  async function handleCreateNewProduct(event: FormEvent) {
-    event.preventDefault();
+  const { products, createProduct, deleteProduct } = useContext(ProductsContext);
 
-    createProduct(titleProduct);
-
-    setTitleProduct('');
+  const handleCreateNewProduct: SubmitHandler<ProductResponse> = async (name) => {
+    createProduct(name);
   }
 
-  // FALTA FAZER
-  async function handleEditProduct(product: ProductResponse): Promise<void> {
-    updateProduct(product);
-  }
 
   async function handleRemoveProduct(id: string) {
     deleteProduct(id);
   }
 
   function handleOpenEditProductModal() {
-    setIsEditProductModal(true);
+    setIsEditProductModalOpen(true);
   }
 
   function handleCloseEditProductModal() {
-    setIsEditProductModal(false);
+    setIsEditProductModalOpen(false);
   }
 
   return (
@@ -56,19 +52,18 @@ export default function Home() {
         <h2>Meus Produtos</h2>
 
         <form
-          onSubmit={handleCreateNewProduct}
+          onSubmit={handleSubmit(handleCreateNewProduct)}
           className={styles['input-group']}
         >
           <input
+            name='product'
             type="text"
             placeholder="Adicionar novo produto"
-            value={titleProduct}
-            onChange={event => setTitleProduct(event.target.value)}
+            {...register('name')}
           />
           <button
             type="submit"
             data-testid="add-task-button"
-            onClick={() => handleCreateNewProduct}
           >
             <FiPlus size={18} color="#fff" />
           </button>
@@ -89,33 +84,11 @@ export default function Home() {
                   <FiTrash size={16} />
                 </button>
               </div>
-              <Modal
-                isOpen={isEditProductModal}
-                onRequestClose={handleCloseEditProductModal}
-                overlayClassName="react-modal-overlay"
-                className="react-modal-content"
-              >
-                <button
-                  onClick={handleCloseEditProductModal}
-                  className="react-modal-close"
-                >
-                  <FiX size={18} color='#3D3D4D' />
-                </button>
-                <Form
-                  ref={formRef}
-                  onSubmit={handleEditProduct}
-                  className={styles.formModal}
-                >
-                  <h2>Editar produto</h2>
-                  <input
-                    value={titleProduct}
-                    placeholder='Novo nome'
-                    onChange={e => setTitleProduct(e.target.value)}
-                  />
 
-                  <button type='submit'>Atualizar</button>
-                </Form>
-              </Modal>
+              <EditProductModal
+                isOpen={isEditProductModalOpen}
+                onRequestClose={handleCloseEditProductModal}
+              />
             </li>
           ))}
 

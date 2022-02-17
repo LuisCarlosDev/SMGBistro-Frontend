@@ -41,7 +41,7 @@ export function RecipesProvider({ children }: ProductsProviderProps) {
   }, []);
 
   async function createRecipe(recipeInput: RecipesInput) {
-    const response = await api.post('/recepis', recipeInput);
+    await api.post('/recepis', recipeInput);
 
     setRecipes([
       ...recipes,
@@ -55,15 +55,8 @@ export function RecipesProvider({ children }: ProductsProviderProps) {
     setRecipes(newRecepiList);
   }
 
-  function updateRecipe(data: Recepi) {
-    try {
-      api.put(`/recepis/${data.id}`, data)
-
-      console.log(data)
-    } catch (error) {
-      console.log(error)
-    }
-
+  function updateRecipe(recipe: Recepi) {
+    api.put(`/recepis/${recipe.id}`, recipe)
     /* setProducts([
       ...products.map(item =>
         item.id === editingProduct.id ? { ...item, ...product } : item,

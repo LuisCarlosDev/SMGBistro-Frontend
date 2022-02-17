@@ -6,21 +6,25 @@ type ProductResponse = {
   name: string;
 }
 
+type ProductInput = Omit<ProductResponse, 'id'>;
+
 type ProductsProviderProps = {
   children: ReactNode;
 }
 
 type ProductsContextData = {
   products: ProductResponse[];
-  createProduct: (name: string) => void;
+  // product: ProductResponse;
+  createProduct: (data: ProductInput) => void;
   deleteProduct: (id: string) => void;
-  updateProduct: (product: ProductResponse) => void;
+  updateProduct(product: ProductResponse): void;
 }
 
 export const ProductsContext = createContext<ProductsContextData>({} as ProductsContextData);
 
 export function ProductsProvider({ children }: ProductsProviderProps) {
   const [products, setProducts] = useState<ProductResponse[]>([]);
+  // const [product, setProduct] = useState<ProductResponse>({} as ProductResponse);
   const [editingProduct, setEditingProduct] = useState<ProductResponse>({} as ProductResponse);
 
   useEffect(() => {
@@ -33,10 +37,8 @@ export function ProductsProvider({ children }: ProductsProviderProps) {
     productList();
   }, []);
 
-  function createProduct(name: string) {
-    api.post('/products', {
-      name
-    });
+  async function createProduct(dataInput: ProductInput): Promise<void> {
+    await api.post('/products', dataInput);
   }
 
   function deleteProduct(id: string) {
@@ -46,20 +48,13 @@ export function ProductsProvider({ children }: ProductsProviderProps) {
     setProducts(newProductList);
   }
 
-  function updateProduct(product: ProductResponse) {
-    try {
-      api.put(`/products/${product.id}`, product)
+  async function updateProduct(
+    product: ProductResponse
+  ): Promise<void> {
+    
+    await api.put(`/products/${product.id}`, product)
 
-      console.log(product)
-    } catch (error) {
-      console.log(error)
-    }
-
-    /* setProducts([
-      ...products.map(item =>
-        item.id === editingProduct.id ? { ...item, ...product } : item,
-      ),
-    ]); */
+    // setProduct(product) 
   }
 
   return (
