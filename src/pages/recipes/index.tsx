@@ -27,6 +27,8 @@ export default function Home() {
     setIngredients('')
     setPrepare('')
     setIsCreateRecipeModal(false);
+
+    window.location.reload();
   } 
 
   function handleRemoveRecepi(id: string) {

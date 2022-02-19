@@ -13,16 +13,9 @@ type ProductResponse = {
 interface EditProductModalProps {
   isOpen: boolean;
   onRequestClose: () => void;
-  editingProduct: ProductResponse;
-  handleUpdateProduct: (product: Omit<ProductResponse, 'id'>) => void
 }
 
-export function EditProductModal({
-  isOpen,
-  onRequestClose,
-  editingProduct,
-  handleUpdateProduct
-}: EditProductModalProps) {
+export function EditProductModal({ isOpen, onRequestClose }: EditProductModalProps, id) {
   const { updateProduct } = useContext(ProductsContext);
 
   const { register, handleSubmit } = useForm();
@@ -30,12 +23,11 @@ export function EditProductModal({
   /* async function handleEditProduct(data: ProductResponse) {
     handleUpdateProduct(data);
   } */
+console.log(id)
+  function onSubmit(product: ProductResponse) {
+    updateProduct(product);
 
-  const handleEditProduct = useCallback((data: ProductResponse) => {
-    updateProduct(data)
-    console.log(data);
-
-  }, [updateProduct])
+  }
 
   return (
     <Modal
@@ -51,10 +43,11 @@ export function EditProductModal({
         <FiX size={18} color='#3D3D4D' />
       </button>
       <form
-        onSubmit={handleSubmit(() => handleEditProduct)}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <h2>Editar produto</h2>
         <input
+          name='product'
           placeholder='Novo nome'
           {...register('product')}
         />

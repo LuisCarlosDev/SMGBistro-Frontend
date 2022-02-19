@@ -24,8 +24,7 @@ export const ProductsContext = createContext<ProductsContextData>({} as Products
 
 export function ProductsProvider({ children }: ProductsProviderProps) {
   const [products, setProducts] = useState<ProductResponse[]>([]);
-  // const [product, setProduct] = useState<ProductResponse>({} as ProductResponse);
-  const [editingProduct, setEditingProduct] = useState<ProductResponse>({} as ProductResponse);
+  const [product, setProduct] = useState<ProductResponse>({} as ProductResponse);
 
   useEffect(() => {
     async function productList() {
@@ -48,17 +47,17 @@ export function ProductsProvider({ children }: ProductsProviderProps) {
     setProducts(newProductList);
   }
 
-  async function updateProduct(
-    product: ProductResponse
-  ): Promise<void> {
-    
-    await api.put(`/products/${product.id}`, product)
-
-    // setProduct(product) 
+  async function updateProduct(data: ProductResponse) {
+    console.log(data);
   }
 
   return (
-    <ProductsContext.Provider value={{ products, createProduct, deleteProduct, updateProduct }}>
+    <ProductsContext.Provider value={{
+      products,
+      createProduct,
+      deleteProduct,
+      updateProduct,
+    }}>
       {children}
     </ProductsContext.Provider>
   )

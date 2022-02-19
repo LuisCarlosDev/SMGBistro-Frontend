@@ -3,11 +3,13 @@ import { FormEvent, useContext, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { FiTrash, FiEdit3, FiPlus } from 'react-icons/fi'
 
+import { toast } from 'react-toastify';
+
+
 import { ProductsContext } from '../hooks/product';
 
 import styles from '../styles/home.module.scss';
-import { Form } from '@unform/web';
-import { FormHandles } from '@unform/core';
+
 import { EditProductModal } from '../components/EditProductModal';
 import api from '../services/api';
 
@@ -17,23 +19,14 @@ type ProductResponse = {
   name: string;
 }
 
-// type ProductInput = Omit<ProductResponse, 'id'>
-
 export default function Home() {
+  const { updateProduct } = useContext(ProductsContext);
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
 
   const { register, handleSubmit } = useForm();
 
+
   const { products, createProduct, deleteProduct } = useContext(ProductsContext);
-
-  const handleCreateNewProduct: SubmitHandler<ProductResponse> = async (name) => {
-    createProduct(name);
-  }
-
-
-  async function handleRemoveProduct(id: string) {
-    deleteProduct(id);
-  }
 
   function handleOpenEditProductModal() {
     setIsEditProductModalOpen(true);
@@ -42,6 +35,21 @@ export default function Home() {
   function handleCloseEditProductModal() {
     setIsEditProductModalOpen(false);
   }
+
+  const handleCreateNewProduct: SubmitHandler<ProductResponse> = async (name) => {
+    createProduct(name);
+
+    toast.success('Produto cadastrado com sucesso')
+
+    window.location.reload();
+  }
+
+
+  async function handleRemoveProduct(id: string) {
+    deleteProduct(id);
+  }
+
+ 
 
   return (
     <section className={styles.container}>
@@ -85,7 +93,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <EditProductModal
+              <EditProductModal 
                 isOpen={isEditProductModalOpen}
                 onRequestClose={handleCloseEditProductModal}
               />
@@ -95,6 +103,5 @@ export default function Home() {
         </ul>
       </main>
     </section>
-
   )
 }
