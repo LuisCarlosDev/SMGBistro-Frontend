@@ -1,13 +1,26 @@
 import Head from 'next/head';
 import { FormEvent, useContext, useState } from 'react';
 import Modal from 'react-modal';
-import { FiTrash, FiCheckSquare, FiEdit3, FiPlus, FiX } from 'react-icons/fi'
+import { FiTrash, FiEdit3, FiX } from 'react-icons/fi'
 import { RecipeContext } from '../../hooks/recipe';
 
 import styles from './styles.module.scss';
+import { GetStaticProps } from 'next';
+import api from '../../services/api';
 
-export default function Home() {
-  const { recipes, createRecipe, deleteRecipe } = useContext(RecipeContext);
+type Recepi = {
+  id: string;
+  name: string;
+  prepare: string;
+  ingredients: string;
+}
+
+type RecepiProps = {
+  recepis: Recepi[];
+}
+
+export default function Home({ recepis }: RecepiProps) {
+  const { createRecipe, deleteRecipe } = useContext(RecipeContext);
 
   const [isCreateRecipeModal, setIsCreateRecipeModal] = useState(false);
   const [name, setName] = useState('');
@@ -29,7 +42,7 @@ export default function Home() {
     setIsCreateRecipeModal(false);
 
     window.location.reload();
-  } 
+  }
 
   function handleRemoveRecepi(id: string) {
     deleteRecipe(id);
@@ -97,7 +110,7 @@ export default function Home() {
 
       <main>
         <ul>
-          {recipes.map(recepi => (
+          {recepis.map(recepi => (
             <li key={recepi.id}>
               <section>
                 <p>{recepi.name}</p>
@@ -116,12 +129,22 @@ export default function Home() {
                   <FiTrash size={16} />
                 </button>
               </div>
-
             </li>
           ))}
-
         </ul>
       </main>
     </section>
   )
+};
+
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await api.get('/recepis');
+
+  const recepis = response.data;
+
+  return {
+    props: {
+      recepis
+    }
+  }
 }

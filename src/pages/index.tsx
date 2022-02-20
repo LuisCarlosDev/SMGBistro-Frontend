@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { FormEvent, useContext, useRef, useState } from 'react';
+import { useContext, useState } from 'react';
 import { FiTrash, FiEdit3, FiPlus } from 'react-icons/fi'
 
 import { toast } from 'react-toastify';
