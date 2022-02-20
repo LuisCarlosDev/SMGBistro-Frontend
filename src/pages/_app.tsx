@@ -12,17 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <AppProvider>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <ToastContainer />
       <Header />
 
       <Component {...pageProps} />

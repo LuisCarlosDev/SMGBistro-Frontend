@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import { FormEvent, useContext, useRef, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
 import { FiTrash, FiEdit3, FiPlus } from 'react-icons/fi'
 
 import { toast } from 'react-toastify';
@@ -12,6 +11,8 @@ import styles from '../styles/home.module.scss';
 
 import { EditProductModal } from '../components/EditProductModal';
 import api from '../services/api';
+import { GetStaticProps } from 'next';
+import { Form } from '@unform/web';
 
 
 type ProductResponse = {
@@ -19,37 +20,55 @@ type ProductResponse = {
   name: string;
 }
 
-export default function Home() {
-  const { updateProduct } = useContext(ProductsContext);
+export default function Home({ products }) {
+  const { setProducts } = useContext(ProductsContext);
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductResponse>({} as ProductResponse);
 
-  const { register, handleSubmit } = useForm();
-
-
-  const { products, createProduct, deleteProduct } = useContext(ProductsContext);
-
-  function handleOpenEditProductModal() {
+  function handleOpenEditProductModal(product: ProductResponse) {
     setIsEditProductModalOpen(true);
+    setEditingProduct(product);
+
+    console.log(product)
   }
 
   function handleCloseEditProductModal() {
     setIsEditProductModalOpen(false);
   }
 
-  const handleCreateNewProduct: SubmitHandler<ProductResponse> = async (name) => {
-    createProduct(name);
+  async function createProduct(data: (Omit<ProductResponse, 'id'>)): Promise<void> {
+    await api.post('/products', data);
+  }
+
+  const handleCreateNewProduct = async (data: (Omit<ProductResponse, 'id'>)) => {
+    createProduct(data);
 
     toast.success('Produto cadastrado com sucesso')
 
     window.location.reload();
   }
 
+  async function deleteProduct(id: string) {
+    await api.delete(`/products/${id}`);
+
+    const newProductList = products.filter(currentProduct => currentProduct.id !== id);
+    setProducts(newProductList);
+    window.location.reload();
+  }
 
   async function handleRemoveProduct(id: string) {
     deleteProduct(id);
   }
 
- 
+  function handleUpdateProduct(data: Omit<ProductResponse, 'id'>) {
+    setProducts([
+      ...products.map(product =>
+        product.id === editingProduct.id ? { ...product, ...data } : product
+      )
+    ])
+
+    console.log();
+  }
 
   return (
     <section className={styles.container}>
@@ -59,15 +78,15 @@ export default function Home() {
       <header className={styles.header}>
         <h2>Meus Produtos</h2>
 
-        <form
-          onSubmit={handleSubmit(handleCreateNewProduct)}
+        <Form
+          onSubmit={handleCreateNewProduct}
           className={styles['input-group']}
         >
           <input
             name='product'
             type="text"
             placeholder="Adicionar novo produto"
-            {...register('name')}
+
           />
           <button
             type="submit"
@@ -75,7 +94,7 @@ export default function Home() {
           >
             <FiPlus size={18} color="#fff" />
           </button>
-        </form>
+        </Form>
       </header>
 
       <main>
@@ -85,23 +104,44 @@ export default function Home() {
             <li key={product.id}>
               <p>{product.name}</p>
               <div>
-                <button type="button" data-testid="remove-task-button" onClick={handleOpenEditProductModal}>
+                <button
+                  type="button"
+                  data-testid="remove-task-button"
+                  onClick={() => handleOpenEditProductModal(product)}
+                >
                   <FiEdit3 size={16} />
                 </button>
-                <button type="button" data-testid="remove-task-button" onClick={() => handleRemoveProduct(product.id)}>
+                <button
+                  type="button"
+                  data-testid="remove-task-button"
+                  onClick={() => handleRemoveProduct(product.id)}
+                >
                   <FiTrash size={16} />
                 </button>
               </div>
 
-              <EditProductModal 
+              <EditProductModal
                 isOpen={isEditProductModalOpen}
                 onRequestClose={handleCloseEditProductModal}
+                updateProduct={handleUpdateProduct}
+                editingProduct={editingProduct}
               />
             </li>
           ))}
-
         </ul>
       </main>
     </section>
   )
+}
+
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await api.get<ProductResponse>('products');
+
+  const products = response.data;
+
+  return {
+    props: {
+      products
+    }
+  }
 }

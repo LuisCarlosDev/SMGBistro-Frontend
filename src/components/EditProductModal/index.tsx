@@ -1,9 +1,9 @@
-import { FormEvent, useCallback, useContext, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { FormEvent, useCallback, useContext, useRef, useState } from 'react';
+import { Form as Unform } from '@unform/web';
+import { FormHandles } from '@unform/core';
 import { FiX } from 'react-icons/fi';
 import Modal from 'react-modal';
-import { ProductsContext, } from '../../hooks/product';
-import api from '../../services/api';
+import { toast } from 'react-toastify';
 
 type ProductResponse = {
   id: string;
@@ -13,21 +13,29 @@ type ProductResponse = {
 interface EditProductModalProps {
   isOpen: boolean;
   onRequestClose: () => void;
+  editingProduct: ProductResponse;
+  updateProduct(data: Omit<ProductResponse, 'id'>): void;
 }
 
-export function EditProductModal({ isOpen, onRequestClose }: EditProductModalProps, id) {
-  const { updateProduct } = useContext(ProductsContext);
+export function EditProductModal({ isOpen, onRequestClose, editingProduct, updateProduct }: EditProductModalProps) {
+  // const { updateProduct, product  } = useContext(ProductsContext);
 
-  const { register, handleSubmit } = useForm();
+  const formRef = useRef<FormHandles>(null);
+
+  // const { register, handleSubmit } = useForm();
 
   /* async function handleEditProduct(data: ProductResponse) {
-    handleUpdateProduct(data);
+    updateProduct(data)
   } */
-console.log(id)
-  function onSubmit(product: ProductResponse) {
-    updateProduct(product);
 
-  }
+  const handleSubmit = useCallback(() => {
+    async (data: ProductResponse) => {
+      updateProduct(data);
+
+      toast.success('Produto atualizado com sucesso')
+
+    }
+  }, [updateProduct]);
 
   return (
     <Modal
@@ -42,18 +50,19 @@ console.log(id)
       >
         <FiX size={18} color='#3D3D4D' />
       </button>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
+      <Unform
+        ref={formRef}
+        onSubmit={handleSubmit}
+        initialData={editingProduct}
       >
         <h2>Editar produto</h2>
         <input
           name='product'
           placeholder='Novo nome'
-          {...register('product')}
         />
 
-        <button type='submit'>Atualizar</button>
-      </form>
+        <button>Atualizar</button>
+      </Unform>
     </Modal>
   )
 }
